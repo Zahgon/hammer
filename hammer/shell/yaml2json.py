@@ -8,12 +8,10 @@ import json
 from hammer.config.yaml2json import convertArrays, compare
 
 def load(f):
-    try:
-        return (open(f, 'r')).read()
-    except IOError:
-        return None
+    pass
 
-def save(f, b): (open(f, 'w')).write(b)
+def save(f, b):
+    pass
 
 def yaml2json():
     """
@@ -23,30 +21,7 @@ def yaml2json():
     that tree is converted to the JSON output. There is a check to make sure the
     two dict trees are structurally identical.
     """
-    if len(sys.argv) > 1:
-        f = sys.argv[1]
-        f2 = None
-        if len(sys.argv) > 2:
-            f2 = sys.argv[2]
-        loaded_file = load(f)
-        assert loaded_file
-        obj = yaml.safe_load(loaded_file)
-        obj = convertArrays(obj)
-        outputContent = json.dumps(obj, indent=2)
-        obj2 = json.loads(outputContent)
-        if not compare(obj, obj2):
-            print("error: they dont match structure")
-            print("")
-            print(str(obj))
-            print("")
-            print(str(obj2))
-        else:
-            if f2:
-                save(f2, outputContent)
-            else:
-                print(outputContent)
-    else:
-        print("usage: yaml2json infile.yaml [outfile.json]")
+    pass
 
 def main():
-    yaml2json()
+    pass

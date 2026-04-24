@@ -1,43 +1,14 @@
-#  units.py
-#  Unit classes/functions for hammer_vlsi.
-#
-#  See LICENSE for licence details.
-
 from abc import abstractmethod
 import sys
 from abc import ABC
 from typing import Optional, TypeVar
-
 from hammer.utils import get_or_else
-
 _TT = TypeVar('_TT', bound='ValueWithUnit')
 
 class ValueWithUnit(ABC):
     """Represents some particular value that has units (e.g. "10 ns", "2000 um", "25 C", etc).
     """
-
-    # From https://stackoverflow.com/a/10970888
-    _prefix_table = {
-        'y': 1e-24,  # yocto
-        'z': 1e-21,  # zepto
-        'a': 1e-18,  # atto
-        'f': 1e-15,  # femto
-        'p': 1e-12,  # pico
-        'n': 1e-9,  # nano
-        'u': 1e-6,  # micro
-        'm': 1e-3,  # milli
-        'c': 1e-2,  # centi
-        'd': 1e-1,  # deci
-        '':  1,    # <no prefix>
-        'k': 1e3,  # kilo
-        'M': 1e6,  # mega
-        'G': 1e9,  # giga
-        'T': 1e12,  # tera
-        'P': 1e15,  # peta
-        'E': 1e18,  # exa
-        'Z': 1e21,  # zetta
-        'Y': 1e24,  # yotta
-    }
+    _prefix_table = {'y': 1e-24, 'z': 1e-21, 'a': 1e-18, 'f': 1e-15, 'p': 1e-12, 'n': 1e-09, 'u': 1e-06, 'm': 0.001, 'c': 0.01, 'd': 0.1, '': 1, 'k': 1000.0, 'M': 1000000.0, 'G': 1000000000.0, 'T': 1000000000000.0, 'P': 1000000000000000.0, 'E': 1e+18, 'Z': 1e+21, 'Y': 1e+24}
 
     @property
     @abstractmethod
@@ -58,7 +29,7 @@ class ValueWithUnit(ABC):
         (e.g. for time, specifying "n" would mean "0.25" would be interpreted as "0.25 ns".)
         Meant to be overridden by subclasses."""
 
-    def __init__(self, value: str, prefix: Optional[str] = None) -> None:
+    def __init__(self, value: str, prefix: Optional[str]=None) -> None:
         """
         Create a value from parsing the given string.
         :param value: Value encoded in the given string.
@@ -67,108 +38,76 @@ class ValueWithUnit(ABC):
                        class if one is not specified.
         """
         import re
-
         default_prefix = get_or_else(prefix, self.default_prefix)
-
-        regex = r"^(-?[\d.]+) *(.*){}$".format(re.escape(self.unit))
+        regex = '^(-?[\\d.]+) *(.*){}$'.format(re.escape(self.unit))
         match = re.search(regex, value)
         if match is None:
             try:
                 num = str(float(value))
                 self._value_prefix = default_prefix
             except ValueError:
-                raise ValueError("Malformed {type} value {value}".format(type=self.unit_type,
-                                                                         value=value))
+                raise ValueError('Malformed {type} value {value}'.format(type=self.unit_type, value=value))
         else:
             num = match.group(1)
             self._value_prefix = match.group(2)
-
         if num.count('.') > 1 or len(self._value_prefix) > 1:
-            raise ValueError("Malformed {type} value {value}".format(type=self.unit_type,
-                                                                     value=value))
-
+            raise ValueError('Malformed {type} value {value}'.format(type=self.unit_type, value=value))
         if self._value_prefix not in self._prefix_table:
-            raise ValueError("Bad prefix for {value}".format(value=value))
-
-        self._value = float(num)  # type: float
-        # Preserve the prefix too to preserve precision
-        self._prefix = self._prefix_table[self._value_prefix]  # type: float
+            raise ValueError('Bad prefix for {value}'.format(value=value))
+        self._value = float(num)
+        self._prefix = self._prefix_table[self._value_prefix]
 
     @property
     def value_prefix(self) -> str:
         """Get the prefix string of this value."""
-        return self._value_prefix
+        pass
 
     @property
     def value(self) -> float:
         """Get the actual value of this value. (e.g. 10 ns -> 1e-9)"""
-        return self._value * self._prefix
+        pass
 
-    def value_in_units(self, prefix: str, round_zeroes: bool = True) -> float:
+    def value_in_units(self, prefix: str, round_zeroes: bool=True) -> float:
         """Get this value in the given prefix. e.g. "ns", "mV", etc.
         """
-        # e.g. extract "n" from "ns" or blank if it's blank (e.g. "V" -> "")
-        letter_prefix = ""
-        if prefix != self.unit:
-            letter_prefix = "" if prefix == "" else prefix[0]
+        pass
 
-        retval = self._value * (self._prefix / self._prefix_table[letter_prefix])
-        if round_zeroes:  # pylint: disable=no-else-return
-            return round(retval, 3)
-        else:
-            return retval
-
-    def str_value_in_units(self, prefix: str, round_zeroes: bool = True) -> str:
+    def str_value_in_units(self, prefix: str, round_zeroes: bool=True) -> str:
         """Get this value in the given prefix but including the units.
         e.g. return "5 ns".
 
         :param prefix: Prefix for the resulting value - e.g. "ns".
         :param round_zeroes: True to round 1.00000001 etc to 1 within 3 decimal places.
         """
-        # %g removes trailing zeroes
-        return "%g" % (self.value_in_units(prefix, round_zeroes)) + " " + prefix
+        pass
 
-    # Comparison operators.
-    # Note that mypy doesn't properly support type checking on equality
-    # operators so the type of __eq__ is object :(
-    # As a result, the operators' (e.g. __eq__) 'other' type can't be _TT.
-    # Therefore, we implement the operators themselves separately and then wrap
-    # them in the special operators.
-    # See https://github.com/python/mypy/issues/1271
-    # Disable useless pylint checks for the following methods.
-    # pylint: disable=unidiomatic-typecheck
-
-    def eq(self: _TT, other: _TT) -> bool:  # pylint: disable=invalid-name
+    def eq(self: _TT, other: _TT) -> bool:
         """
         Compare equality of this value with another.
         The types must match.
         """
-        if type(self) != type(other):
-            raise TypeError("Types do not match")
-        return self.value_in_units(self.default_prefix) == other.value_in_units(self.default_prefix)
+        pass
 
     def __eq__(self: _TT, other: object) -> bool:
         """
         Compare equality of this value with another.
         The types must match.
         """
-        return self.eq(other)  # type: ignore
+        return self.eq(other)
 
-    def ne(self: _TT, other: _TT) -> bool:  # pylint: disable=invalid-name
+    def ne(self: _TT, other: _TT) -> bool:
         """
         Compare inequality of this value with another.
         The types must match.
         """
-        if type(self) != type(other):
-            raise TypeError("Types do not match")
-        return not self.eq(other)
+        pass
 
     def __ne__(self: _TT, other: object) -> bool:
         """
         Compare inequality of this value with another.
         The types must match.
         """
-        return self.ne(other)  # type: ignore
+        return self.ne(other)
 
     def __lt__(self: _TT, other: _TT) -> bool:
         """
@@ -176,7 +115,7 @@ class ValueWithUnit(ABC):
         The types must match.
         """
         if type(self) != type(other):
-            raise TypeError("Types do not match")
+            raise TypeError('Types do not match')
         return self.value < other.value
 
     def __le__(self: _TT, other: _TT) -> bool:
@@ -185,7 +124,7 @@ class ValueWithUnit(ABC):
         The types must match.
         """
         if type(self) != type(other):
-            raise TypeError("Types do not match")
+            raise TypeError('Types do not match')
         return self.value <= other.value
 
     def __gt__(self: _TT, other: _TT) -> bool:
@@ -194,7 +133,7 @@ class ValueWithUnit(ABC):
         The types must match.
         """
         if type(self) != type(other):
-            raise TypeError("Types do not match")
+            raise TypeError('Types do not match')
         return self.value > other.value
 
     def __ge__(self: _TT, other: _TT) -> bool:
@@ -203,7 +142,7 @@ class ValueWithUnit(ABC):
         The types must match.
         """
         if type(self) != type(other):
-            raise TypeError("Types do not match")
+            raise TypeError('Types do not match')
         return self.value >= other.value
 
     def __add__(self: _TT, other: _TT) -> _TT:
@@ -212,8 +151,8 @@ class ValueWithUnit(ABC):
         The types must match.
         """
         if type(self) != type(other):
-            raise TypeError("Types do not match")
-        return type(self)(str(self.value + other.value),"")
+            raise TypeError('Types do not match')
+        return type(self)(str(self.value + other.value), '')
 
     def __sub__(self: _TT, other: _TT) -> _TT:
         """
@@ -221,8 +160,8 @@ class ValueWithUnit(ABC):
         The types must match.
         """
         if type(self) != type(other):
-            raise TypeError("Types do not match")
-        return type(self)(str(self.value - other.value),"")
+            raise TypeError('Types do not match')
+        return type(self)(str(self.value - other.value), '')
 
     def __div__(self: _TT, other: float) -> _TT:
         """
@@ -230,16 +169,14 @@ class ValueWithUnit(ABC):
         """
         raise NotImplementedError()
 
-    # Some python nonsense
     def __truediv__(self: _TT, other: float) -> _TT:
-        return type(self)(str(self.value / other),"")
+        return type(self)(str(self.value / other), '')
 
     def __mul__(self: _TT, other: float) -> _TT:
         """
         Multiply self by a float or an integer.
         """
-        return type(self)(str(self.value * other),"")
-
+        return type(self)(str(self.value * other), '')
 
 class TimeValue(ValueWithUnit):
     """Time value - e.g. "4 ns".
@@ -249,16 +186,15 @@ class TimeValue(ValueWithUnit):
     @property
     def default_prefix(self) -> str:
         """Default prefix: ns"""
-        return "n"
+        pass
 
     @property
     def unit(self) -> str:
-        return "s"
+        pass
 
     @property
     def unit_type(self) -> str:
-        return "time"
-
+        pass
 
 class VoltageValue(ValueWithUnit):
     """Voltage value - e.g. "0.95 V", "950 mV".
@@ -267,16 +203,15 @@ class VoltageValue(ValueWithUnit):
     @property
     def default_prefix(self) -> str:
         """Default is plain volts (e.g. "0.1" -> 0.1 V)."""
-        return ""
+        pass
 
     @property
     def unit(self) -> str:
-        return "V"
+        pass
 
     @property
     def unit_type(self) -> str:
-        return "voltage"
-
+        pass
 
 class TemperatureValue(ValueWithUnit):
     """Temperature value in Celsius - e.g. "25 C", "125 C".
@@ -286,16 +221,15 @@ class TemperatureValue(ValueWithUnit):
     @property
     def default_prefix(self) -> str:
         """Default is plain degrees Celsius (e.g. "25" -> "25 C")."""
-        return ""
+        pass
 
     @property
     def unit(self) -> str:
-        return "C"
+        pass
 
     @property
     def unit_type(self) -> str:
-        return "voltage"
-
+        pass
 
 class CapacitanceValue(ValueWithUnit):
     """Capacitance value - e.g. "5 fF", "10 nF".
@@ -304,12 +238,12 @@ class CapacitanceValue(ValueWithUnit):
     @property
     def default_prefix(self) -> str:
         """Default prefix: fF"""
-        return "f"
+        pass
 
     @property
     def unit(self) -> str:
-        return "F"
+        pass
 
     @property
     def unit_type(self) -> str:
-        return "capacitance"
+        pass

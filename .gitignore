@@ -32,3 +32,6 @@ e2e/build*
 e2e/output.json
 e2e/*.log
 e2e/experiments/tests/
+
+.aider*
+logs/
